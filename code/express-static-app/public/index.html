@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="/static/style.css">
+        <link rel="icon" href="/static/images/HelloWorldLogo.png">
+        <script async type="module" src="/static/login.js"></script>
+        <script async src="/../../server.js"></script>
+        <script async type="module" src="/static/js/index.js"></script>
+        <script src="/static/js/jquery-3.6.0.min.js"></script>
+        <script src="/static/js/jsrender.js"></script>
+        <script src="https://accounts.google.com/gsi/client" async defer></script>
+        <script src="https://apis.google.com/js/client:platform.js?onload=start" async defer></script>
+        <title>HelloWorld! Q's & A's</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;700&display=swap" rel="stylesheet">
+    </head>
+    <body>
+        <div class="header">
+            <h1>HelloWorld!</h1>
+            <form onsubmit="ask()" action="#">
+                <input type="text" placeholder="Ask something..." id="question"/>
+                <button type="submit">Ask</button>
+            </form>
+        </div>
+        <div class= "body">
+            <h2 id="allposts">All Posts</h2>
+            <div id="questions"></div>
+        </div>
+        
+        <!-- open the modal -->
+        <button class="login-button" onclick="document.getElementById('id01').style.display='block'">Login</button>
+
+        <!-- The Modal -->
+        <div id="id01" class="modal">
+            <span onclick="document.getElementById('id01').style.display='none'"
+            class="close" title="Close Modal">&times;</span>
+
+            <!-- Modal Content -->
+            <form class="modal-content animate" action="/action_page.php">
+                <div class="form-header">
+                    <img src="/static/images/HelloWorldLogo.png" alt="Logo" class="logo">
+                </div>
+
+                <div class="container">
+                <label for="uname"><b>Username</b></label>
+                <input type="text" placeholder="Enter Username" name="uname" required>
+
+                <label for="psw"><b>Password</b></label>
+                <input type="password" placeholder="Enter Password" name="psw" required>
+
+                <button type="submit">Login</button>
+                </div>
+
+                <!-- Google Redirect Mode -->
+                <div id="g_id_onload"
+                data-client_id="693336538525-vnn1n1ulfa81phh4ko8j14erp1d2lngb.apps.googleusercontent.com"
+                data-ux_mode="redirect"
+                data-auto_select="true"
+                data-login_uri="http://localhost:80">
+                </div>
+                
+                <!-- Google Button Layout/Size -->
+                <div class="g_id_signin"
+                data-type="standard"
+                data-size="large"
+                data-theme="outline"
+                data-text="sign_in_with"
+                data-shape="rectangular"
+                data-logo_alignment="left">
+                </div>
+                    
+    
+                <div class="container" style="background-color:#ffffff"> 
+                                <button type="button" onclick="document.getElementById('id01').style.display='none'" class="cancelbtn">Cancel</button>
+                                <span class="psw">Don't Have an Account? <a href="#" onclick="document.getElementById('id01').style.display='none'; document.getElementById('id02').style.display='block'">Sign Up!</a> <span style="color: #888">
+                
+                </div>
+                </div>
+            
+            </form>
+        
+        <div id="id02" class="modal">
+            <span onclick="document.getElementById('id02').style.display='none'"
+            class="close" title="Close Modal">&times;</span>
+    
+            <!-- Modal Content --> 
+            <form class="modal-content animate" action="/action_page.php">
+                <div class="form-header">
+                    <img src="/static/images/HelloWorldLogo.png" alt="Logo" class="logo">
+                </div>
+    
+                <div class="container">
+                <label for="uname"><b>Username</b></label>
+                <input type="text" placeholder="Enter Username" name="uname" required>
+
+                <label for="email"><b>Email</b></label>
+                <input type="text" placeholder="Enter Email" name="email" required>
+    
+                <label for="psw"><b>Password</b></label>
+                <input type="password" placeholder="Enter Password" name="psw" required>
+
+                <label for="psw"><b>Confirm Password</b></label>
+                <input type="password" placeholder="Confirm Password" name="psw" required>
+    
+                <button type="submit">Sign Up</button>
+                </div>
+    
+                <div class="container" style="background-color:#f1f1f1">
+                <button type="button" onclick="document.getElementById('id02').style.display='none'" class="cancelbtn">Cancel</button>
+                <span class="psw">Already Have an Account? <a href="#" onclick="document.getElementById('id02').style.display='none'; document.getElementById('id01').style.display='block'">Sign In!</a> <span style="color: #888">
+
+                </div>
+            </form>
+        </div>
+
+        <script id="questionsTemplate" type="text/x-jsrender">
+            <h3>{{:question}}</h3>
+            <em>Asked by: {{:submittedBy}}</em><br><br>
+            <ul>
+                {{for answers}}
+                    <li>{{:submittedBy}} answered: {{:answer}}</li>
+                {{else}}
+                    Be the first to answer!
+                {{/for}}
+            </ul>
+            <form onsubmit="false" action="#" data-question="{{:PostID}}">
+                <input type="text" placeholder="Answer Here" name="answer"/>
+                <button type="submit">Submit Answer</button>
+            </form>
+
+        </script>
+
+           <script>
+
+            const api = 'http://192.168.56.102:8080/api';
+            //const api = 'http://localhost:8080/api';
+
+            function post(route, data, done) {
+                $.ajax({
+                    url: route,
+                    type: 'POST',
+                    data:  JSON.stringify(data),
+                    contentType: "application/json"
+                }).done((data) => {
+                    done(data);
+                });
+            }
+
+            function ask() {
+                post(`${api}/questions`, {Title: "placeholder", content: $("#question").val()}, refresh);
+                return false;
+            }
+
+            function answer(q, a) {
+                post(`${api}/questions/${q}`, {TitleA: "placeholder", contentA: $(`[data-question='${q}'] input:text`).val()}, refresh);
+                return false;
+            }
+
+            function refresh() {
+                $.ajax({
+                url: `${api}/questions`
+                })
+                .done(function( data ) {
+                    data.forEach(d => {
+                        console.log(d);
+                        d.question = d.content;
+                        d.submittedBy = "submitter";
+                    });
+                    $("#questions").html(questionsTemplate.render(data));
+
+                    // there should be a better way to do this...
+                    $("form[data-question]").submit((e) => {
+                        e.preventDefault();
+                        const q = $(e.target).attr('data-question');
+                        const a = $(`form[data-question=${q}] input:text`).val();
+                        
+                        answer(q, a);
+                    });
+                });
+            }
+
+            var questionsTemplate = $.templates("#questionsTemplate");
+            
+            $(document).ready(() => {
+                refresh();
+            });
+
+            /*var data = [
+                {
+                    "question": "Why is grass green?",
+                    "submittedBy": "John Greene",
+                    "answers": [{"answer": "It be like that sometimes", "submittedBy": "User1234"}, {"answer": "It is not", "submittedBy": "123User"}]
+                },
+                {
+                    "question": "Where is The Illinois Institute of Technology located?",
+                    "submittedBy": "CarlosSainz",
+                    "answers": [{"answer": "In the Chicago neighborhood of Bronzeville", "submittedBy": "jonDoe"}, {"answer": "Between misery and insanity", "submittedBy": "janeDoe"}]
+                }
+            ];*/
+            
+            </script>
+
+    </body>
+</html>
